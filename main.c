@@ -2,7 +2,12 @@
 #include <windows.h>
 #include <Winuser.h>
 #include <stdio.h>
-/*#include <winutil.h>*/
+#include <wingdi.h>
+
+/*cursors: https://learn.microsoft.com/en-us/windows/win32/menurc/about-cursors */
+//HCURSOR hCurs;
+WNDCLASS g_wc = { };
+HINSTANCE g_hInst;
 
 /*
 	https://learn.microsoft.com/en-us/windows/win32/learnwin32/writing-the-window-procedure
@@ -18,8 +23,44 @@ LRESULT WindowProc(
 	switch(uMsg){
 
 		case WM_CLOSE:
+			DestroyWindow(hWindow);
 			PostQuitMessage(0);
+			return 0;
+		
+		/*case WM_SETCURSOR:
+			g_wc.hCursor = LoadCursorA(g_hInst,IDC_ARROW);
+			if (IsIconic(hWindow)) 
+	    { 
+	        SetCursor(LoadCursorA(g_hInst,IDC_ARROW)); 
+	        break; 
+	    } 
+			
+			return 0;
+
+		  case WM_ENTERSIZEMOVE:
+			g_wc.hCursor = LoadCursorA(g_hInst,IDC_SIZEWE);
 			return DefWindowProc(hWindow, uMsg, wParam, lParam);
+		  case WM_EXITSIZEMOVE:
+			g_wc.hCursor = LoadCursorA(g_hInst,IDC_ARROW);
+			return DefWindowProc(hWindow, uMsg, wParam, lParam);
+*/
+
+
+		case WM_PAINT:
+		{
+			/* https://learn.microsoft.com/en-us/windows/win32/learnwin32/painting-the-window */
+				PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWindow, &ps);
+
+        // All painting occurs here, between BeginPaint and EndPaint.
+
+        HBRUSH wincol = CreateSolidBrush(RGB(0xa5,0x15,0x13)); /*(HBRUSH) (COLOR_WINDOW+1) */
+        FillRect(hdc, &ps.rcPaint, wincol);
+
+        EndPaint(hWindow, &ps);
+
+			return DefWindowProc(hWindow, uMsg, wParam, lParam);
+		}
 		default:
 			return DefWindowProc(hWindow, uMsg, wParam, lParam);
 	}
@@ -29,26 +70,18 @@ LRESULT WindowProc(
 
 int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow)
 {
+	g_hInst = hInst;
+	/*hCurs = LoadCursorA(hInst,IDC_ARROW);*/
 
-	#ifdef CBaseWindow
-		puts("CBaseWindow is defined");
-	#else
-			puts("Not Defined CBaseWindow!");	
-	#endif
-
-
-	puts("winmain");
 
 	// Register the window class.
 	const char CLASS_NAME[]  = "Sample Window Class";
 
-	WNDCLASS wc = { };
-
-	wc.lpfnWndProc   = WindowProc;
-	wc.hInstance     = hInst;
-	wc.lpszClassName = CLASS_NAME;
-
-	RegisterClassA (&wc);
+	g_wc.lpfnWndProc   = WindowProc;
+	g_wc.hInstance     = hInst;
+	g_wc.lpszClassName = CLASS_NAME;
+	g_wc.hCursor 			 = LoadCursorA(hInst,IDC_ARROW);
+	RegisterClassA (&g_wc);
 
 
 
@@ -73,10 +106,8 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 	}
 
 
-
 	ShowWindow(hwnd, cmdshow);
 
-	puts("winmain end");
 
 	MSG msg;
 
@@ -88,8 +119,5 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 
 	}
 
-	MessageBox(NULL, "progamm wird beented", "ende", 0);
-
 	return 0;
-
 }
